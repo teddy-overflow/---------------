@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+    <package_name>Newtonsoft.Json</package_name>
+
+    <repository>
+        https://api.nuget.org/v3-flatcontainer/
+    </repository>
+
+    <test_mode>false</test_mode>
+
+    <version>13.0.3</version>
+
+    <output_file>dependencies.svg</output_file>
+
+    <ascii_tree>true</ascii_tree>
+
+    <max_depth>3</max_depth>
+</configuration>
