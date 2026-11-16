@@ -2,9 +2,9 @@
 
 ## Описание проекта
 
-Проект представляет собой инструмент для визуализации графа зависимостей пакетов NuGet.
+Проект представляет собой инструмент для получения и визуализации графа зависимостей пакетов NuGet.
 
-На первом этапе реализован CLI-прототип, который загружает настройки из XML-файла, проверяет их корректность и выводит параметры программы в консоль.
+Программа загружает настройки из XML-файла, получает информацию о NuGet-пакетах, извлекает их зависимости и в дальнейшем строит граф зависимостей.
 
 ## Параметры конфигурации
 
@@ -24,18 +24,24 @@
 
 ```text
 .
-├── config.xml
+├── .gitignore
 ├── README.md
+├── config.xml
+├── run.bat
 ├── src/
 │   ├── __init__.py
 │   ├── config.py
-│   └── main.py
+│   ├── main.py
+│   └── nuget.py
 └── tests/
     ├── __init__.py
-    └── test_config.py
+    ├── test_config.py
+    └── test_nuget.py
 ```
 
 ## Основные функции
+
+### Модуль `config.py`
 
 - `get_value()` — получает обязательное значение из XML.
 - `validate_boolean()` — проверяет логические параметры.
@@ -43,7 +49,18 @@
 - `validate_output_file()` — проверяет имя и расширение выходного файла.
 - `validate_max_depth()` — проверяет глубину анализа.
 - `load_config()` — загружает и проверяет конфигурацию.
-- `main()` — запускает программу и выводит настройки.
+
+### Модуль `nuget.py`
+
+- `build_package_url()` — формирует URL NuGet-пакета.
+- `download_package()` — скачивает пакет из репозитория.
+- `extract_nuspec()` — извлекает файл `.nuspec` из архива `.nupkg`.
+- `parse_dependencies()` — извлекает прямые зависимости из XML.
+- `fetch_direct_dependencies()` — выполняет получение прямых зависимостей пакета.
+
+### Модуль `main.py`
+
+Запускает программу, загружает конфигурацию, получает прямые зависимости и выводит их названия и версии.
 
 ## Запуск программы
 
@@ -55,6 +72,12 @@
 python -m src.main
 ```
 
+В Windows также можно запустить программу с помощью файла:
+
+```text
+run.bat
+```
+
 ## Запуск тестов
 
 Для запуска автоматических тестов выполните:
@@ -63,13 +86,17 @@ python -m src.main
 python -m unittest discover -s tests -v
 ```
 
+Тесты проверяют загрузку конфигурации, формирование URL, обработку архивов NuGet, разбор XML и получение прямых зависимостей.
+
 ## Пример конфигурации
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <package_name>Newtonsoft.Json</package_name>
-    <repository>https://api.nuget.org/v3-flatcontainer/</repository>
+    <repository>
+        https://api.nuget.org/v3-flatcontainer/
+    </repository>
     <test_mode>false</test_mode>
     <version>13.0.3</version>
     <output_file>dependencies.svg</output_file>
@@ -78,12 +105,40 @@ python -m unittest discover -s tests -v
 </configuration>
 ```
 
+## Пример результата
+
+Для пакета `Newtonsoft.Json` версии `13.0.3` программа получает следующие прямые зависимости:
+
+```text
+Пакет: Newtonsoft.Json
+Версия: 13.0.3
+
+Прямые зависимости:
+- Microsoft.CSharp: 4.3.0
+- NETStandard.Library: 1.6.1
+- System.ComponentModel.TypeConverter: 4.3.0
+- System.Runtime.Serialization.Primitives: 4.3.0
+- System.Runtime.Serialization.Formatters: 4.3.0
+- System.Xml.XmlDocument: 4.3.0
+
+Всего зависимостей: 6
+```
+
 ## Текущий этап разработки
 
-Реализован первый этап:
+**Этап 1 — завершён:**
 
 - создание CLI-прототипа;
 - загрузка XML-конфигурации;
 - проверка параметров;
 - обработка ошибок;
 - автоматические тесты.
+
+**Этап 2 — завершён:**
+
+- получение NuGet-пакета по URL репозитория;
+- извлечение файла `.nuspec` из архива `.nupkg`;
+- разбор XML-описания пакета;
+- получение прямых зависимостей и их версий;
+- вывод результатов в консоль;
+- автоматические тесты без обращения к сети.
