@@ -1,3 +1,4 @@
+
 import tempfile
 import unittest
 from pathlib import Path
@@ -99,6 +100,51 @@ class ConfigTests(unittest.TestCase):
         self.write_config(
             "<max_depth>3</max_depth>",
             "<max_depth>0</max_depth>",
+        )
+        with self.assertRaises(ValueError):
+            load_config(self.config_path)
+
+    def test_missing_parameter(self):
+        self.write_config(
+            "<version>13.0.3</version>",
+            "",
+        )
+        with self.assertRaises(ValueError):
+            load_config(self.config_path)
+
+    def test_invalid_root_tag(self):
+        self.write_config(
+            "<configuration>",
+            "<settings>",
+        )
+        self.write_config(
+            "</configuration>",
+            "</settings>",
+        )
+        with self.assertRaises(ValueError):
+            load_config(self.config_path)
+
+    def test_malformed_xml(self):
+        self.config_path.write_text(
+            "<configuration><package_name>",
+            encoding="utf-8",
+        )
+        with self.assertRaises(ValueError):
+            load_config(self.config_path)
+
+    def test_missing_config_file(self):
+        missing_path = self.config_path.parent / "missing.xml"
+        with self.assertRaises(ValueError):
+            load_config(missing_path)
+
+    def test_missing_test_repository(self):
+        self.write_config(
+            "<repository>https://api.nuget.org/v3-flatcontainer/</repository>",
+            "<repository>missing-repository.json</repository>",
+        )
+        self.write_config(
+            "<test_mode>false</test_mode>",
+            "<test_mode>true</test_mode>",
         )
         with self.assertRaises(ValueError):
             load_config(self.config_path)
