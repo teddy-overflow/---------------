@@ -1,4 +1,5 @@
 
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -8,6 +9,10 @@ from src.graph import (
     create_node_id,
     get_installation_order,
     load_test_graph,
+)
+from src.visualization import (
+    create_mermaid,
+    save_mermaid,
 )
 
 
@@ -241,6 +246,56 @@ class GraphTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "отсутствует"):
             get_installation_order(graph, "a@1.0")
+
+    def test_create_mermaid(self):
+        graph = {
+            "a@1.0": {
+                "name": "A",
+                "version": "1.0",
+                "dependencies": ["b@1.0"],
+            },
+            "b@1.0": {
+                "name": "B",
+                "version": "2.0",
+                "dependencies": [],
+            },
+        }
+
+        mermaid = create_mermaid(graph, "a@1.0")
+
+        self.assertIn("flowchart TD", mermaid)
+        self.assertIn('package_0["A<br/>1.0"]', mermaid)
+        self.assertIn('package_1["B<br/>2.0"]', mermaid)
+        self.assertIn("package_0 --> package_1", mermaid)
+
+    def test_save_mermaid(self):
+        mermaid = "flowchart TD\n    A --> B\n"
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_file = Path(temp_dir) / "test.mmd"
+
+            saved_file = save_mermaid(
+                mermaid,
+                output_file,
+            )
+
+            self.assertTrue(saved_file.exists())
+            self.assertEqual(
+                saved_file.read_text(encoding="utf-8"),
+                mermaid,
+            )
+
+    def test_create_mermaid_missing_root(self):
+        graph = {
+            "a@1.0": {
+                "name": "A",
+                "version": "1.0",
+                "dependencies": [],
+            },
+        }
+
+        with self.assertRaisesRegex(ValueError, "Корневой пакет"):
+            create_mermaid(graph, "missing@1.0")
 
 
 if __name__ == "__main__":

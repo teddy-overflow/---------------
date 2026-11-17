@@ -1,3 +1,4 @@
+
 from pathlib import Path
 
 from src.config import load_config
@@ -5,6 +6,11 @@ from src.graph import (
     build_dependency_graph,
     create_node_id,
     get_installation_order,
+)
+from src.visualization import (
+    create_mermaid,
+    save_mermaid,
+    render_mermaid,
 )
 
 
@@ -19,17 +25,6 @@ def print_graph(graph, root_id, ascii_tree=True):
     print(f"{root['name']} ({root['version']})")
 
     if not ascii_tree:
-        for node in graph.values():
-            print(f"- {node['name']} ({node['version']})")
-
-            for dependency_id in node["dependencies"]:
-                dependency = graph.get(dependency_id)
-
-                if dependency is not None:
-                    print(
-                        f"  -> {dependency['name']} "
-                        f"({dependency['version']})"
-                    )
         return
 
     stack = []
@@ -134,21 +129,42 @@ def main():
             root_id,
         )
 
+        mermaid_text = create_mermaid(
+            graph,
+            root_id,
+        )
+
+        mermaid_file = project_dir / "dependencies.mmd"
+        svg_file = project_dir / config["output_file"]
+
+        save_mermaid(
+            mermaid_text,
+            mermaid_file,
+        )
+
+        render_mermaid(
+            mermaid_file,
+            svg_file,
+        )
+
     except ValueError as error:
         print(f"Ошибка: {error}")
         return
 
     print("\nГраф зависимостей:\n")
 
-    print_graph(
-        graph,
-        root_id,
-        config["ascii_tree"],
-    )
+    if config["ascii_tree"]:
+        print_graph(
+            graph,
+            root_id,
+            True,
+        )
 
     print_installation_order(graph, installation_order)
 
     print(f"\nВсего узлов в графе: {len(graph)}")
+    print(f"Mermaid-файл: {mermaid_file.name}")
+    print(f"SVG-файл: {svg_file.name}")
 
 
 if __name__ == "__main__":
