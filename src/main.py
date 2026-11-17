@@ -1,8 +1,11 @@
-
 from pathlib import Path
 
 from src.config import load_config
-from src.graph import build_dependency_graph, create_node_id
+from src.graph import (
+    build_dependency_graph,
+    create_node_id,
+    get_installation_order,
+)
 
 
 def print_graph(graph, root_id, ascii_tree=True):
@@ -71,6 +74,19 @@ def print_graph(graph, root_id, ascii_tree=True):
             ))
 
 
+def print_installation_order(graph, installation_order):
+    """Выводит порядок установки пакетов."""
+    print("\nПорядок установки пакетов:")
+
+    for index, node_id in enumerate(installation_order, start=1):
+        node = graph[node_id]
+
+        print(
+            f"{index}. {node['name']} "
+            f"({node['version']})"
+        )
+
+
 def main():
     """Запускает программу и строит граф зависимостей."""
     project_dir = Path(__file__).resolve().parent.parent
@@ -108,14 +124,19 @@ def main():
             config["test_mode"],
         )
 
+        root_id = create_node_id(
+            config["package_name"],
+            config["version"],
+        )
+
+        installation_order = get_installation_order(
+            graph,
+            root_id,
+        )
+
     except ValueError as error:
         print(f"Ошибка: {error}")
         return
-
-    root_id = create_node_id(
-        config["package_name"],
-        config["version"],
-    )
 
     print("\nГраф зависимостей:\n")
 
@@ -124,6 +145,8 @@ def main():
         root_id,
         config["ascii_tree"],
     )
+
+    print_installation_order(graph, installation_order)
 
     print(f"\nВсего узлов в графе: {len(graph)}")
 

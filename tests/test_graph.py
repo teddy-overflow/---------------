@@ -6,6 +6,7 @@ from unittest.mock import patch
 from src.graph import (
     build_dependency_graph,
     create_node_id,
+    get_installation_order,
     load_test_graph,
 )
 
@@ -128,6 +129,118 @@ class GraphTests(unittest.TestCase):
                 0,
                 test_mode=True,
             )
+
+    def test_installation_order(self):
+        graph = {
+            "a@1.0": {
+                "name": "A",
+                "version": "1.0",
+                "dependencies": ["b@1.0", "c@1.0"],
+            },
+            "b@1.0": {
+                "name": "B",
+                "version": "1.0",
+                "dependencies": ["d@1.0"],
+            },
+            "c@1.0": {
+                "name": "C",
+                "version": "1.0",
+                "dependencies": ["d@1.0"],
+            },
+            "d@1.0": {
+                "name": "D",
+                "version": "1.0",
+                "dependencies": [],
+            },
+        }
+
+        order = get_installation_order(graph, "a@1.0")
+
+        self.assertEqual(
+            order,
+            ["d@1.0", "b@1.0", "c@1.0", "a@1.0"],
+        )
+
+    def test_installation_order_chain(self):
+        graph = {
+            "a@1.0": {
+                "name": "A",
+                "version": "1.0",
+                "dependencies": ["b@1.0"],
+            },
+            "b@1.0": {
+                "name": "B",
+                "version": "1.0",
+                "dependencies": ["c@1.0"],
+            },
+            "c@1.0": {
+                "name": "C",
+                "version": "1.0",
+                "dependencies": [],
+            },
+        }
+
+        order = get_installation_order(graph, "a@1.0")
+
+        self.assertEqual(
+            order,
+            ["c@1.0", "b@1.0", "a@1.0"],
+        )
+
+    def test_installation_order_independent_dependencies(self):
+        graph = {
+            "a@1.0": {
+                "name": "A",
+                "version": "1.0",
+                "dependencies": ["b@1.0", "c@1.0"],
+            },
+            "b@1.0": {
+                "name": "B",
+                "version": "1.0",
+                "dependencies": [],
+            },
+            "c@1.0": {
+                "name": "C",
+                "version": "1.0",
+                "dependencies": [],
+            },
+        }
+
+        order = get_installation_order(graph, "a@1.0")
+
+        self.assertEqual(
+            order,
+            ["b@1.0", "c@1.0", "a@1.0"],
+        )
+
+    def test_installation_order_cycle(self):
+        graph = {
+            "a@1.0": {
+                "name": "A",
+                "version": "1.0",
+                "dependencies": ["b@1.0"],
+            },
+            "b@1.0": {
+                "name": "B",
+                "version": "1.0",
+                "dependencies": ["a@1.0"],
+            },
+        }
+
+        with self.assertRaisesRegex(ValueError, "цикл"):
+            get_installation_order(graph, "a@1.0")
+
+    def test_installation_order_missing_node(self):
+        graph = {
+            "a@1.0": {
+                "name": "A",
+                "version": "1.0",
+                "dependencies": ["missing@1.0"],
+            },
+        }
+
+        with self.assertRaisesRegex(ValueError, "отсутствует"):
+            get_installation_order(graph, "a@1.0")
 
 
 if __name__ == "__main__":

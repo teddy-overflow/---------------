@@ -1,4 +1,3 @@
-
 import json
 import re
 from pathlib import Path
@@ -157,3 +156,55 @@ def build_dependency_graph(
             ))
 
     return graph
+
+
+def get_installation_order(graph, root_id):
+    """Определяет порядок установки пакетов топологической сортировкой."""
+    if root_id not in graph:
+        raise ValueError("Корневой пакет отсутствует в графе")
+
+    states = {}
+    installation_order = []
+    stack = [(root_id, False)]
+
+    while stack:
+        node_id, is_finished = stack.pop()
+
+        if node_id not in graph:
+            raise ValueError(
+                f"В графе отсутствует узел: {node_id}"
+            )
+
+        if is_finished:
+            states[node_id] = 2
+            installation_order.append(node_id)
+            continue
+
+        state = states.get(node_id, 0)
+
+        if state == 2:
+            continue
+
+        if state == 1:
+            raise ValueError(
+                f"Обнаружен цикл зависимостей: {node_id}"
+            )
+
+        states[node_id] = 1
+
+        stack.append((node_id, True))
+
+        dependencies = graph[node_id]["dependencies"]
+
+        for dependency_id in reversed(dependencies):
+            dependency_state = states.get(dependency_id, 0)
+
+            if dependency_state == 1:
+                raise ValueError(
+                    f"Обнаружен цикл зависимостей: {dependency_id}"
+                )
+
+            if dependency_state != 2:
+                stack.append((dependency_id, False))
+
+    return installation_order
