@@ -1,4 +1,3 @@
-
 from io import BytesIO
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
