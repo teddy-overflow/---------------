@@ -51,7 +51,9 @@ def extract_nuspec(package_data):
             return archive.read(nuspec_files[0])
 
     except BadZipFile as error:
-        raise ValueError("Полученный файл не является архивом NuGet") from error
+        raise ValueError(
+            "Полученный файл не является архивом NuGet"
+        ) from error
 
 
 def parse_dependencies(nuspec_data):

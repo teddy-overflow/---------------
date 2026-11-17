@@ -1,0 +1,31 @@
+{
+  "NEWTONSOFT.JSON": [
+    {
+      "name": "MICROSOFT.CSHARP",
+      "version": "4.3.0"
+    },
+    {
+      "name": "NETSTANDARD.LIBRARY",
+      "version": "1.6.1"
+    }
+  ],
+  "MICROSOFT.CSHARP": [
+    {
+      "name": "SYSTEM.RUNTIME",
+      "version": "4.3.0"
+    }
+  ],
+  "NETSTANDARD.LIBRARY": [
+    {
+      "name": "SYSTEM.RUNTIME",
+      "version": "4.3.0"
+    }
+  ],
+  "SYSTEM.RUNTIME": [
+    {
+      "name": "SYSTEM.CORE",
+      "version": "4.3.0"
+    }
+  ],
+  "SYSTEM.CORE": []
+}
